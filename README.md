@@ -2,6 +2,8 @@
 
 **AI4ALL Ignite portfolio project** — predicting sleep quality from lifestyle factors.
 
+**🔴 Live demo: [sleep-doctor-ai4all.streamlit.app](https://sleep-doctor-ai4all.streamlit.app)**
+
 > **Research question:** Based on age, stress level, and activity level, can we predict sleep quality?
 
 **Team:** Quang Doan · Shaili Halani · Nathanael Owusu · Prevailer Nchekwube · Sanskriti Poudel · Alex Saidov
