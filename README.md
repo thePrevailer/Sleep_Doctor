@@ -126,7 +126,7 @@ python train.py
 - `main` is protected on GitHub — direct pushes are rejected, so every change arrives by pull request
 - One branch per phase: `feat/phase1-data-setup`, `feat/phase2-statistics`, …
 - Commit style: `feat:` / `fix:` / `docs:` / `chore:`
-- PRs are reviewed before merge — results in a PR get independently reproduced before it is approved
+- Every change is proposed in a pull request and reviewed before merge
 
 ## References
 
