@@ -47,8 +47,17 @@ def main():
     df = pd.read_csv(DATA_PATH)
     df["quality_bucket"] = to_bucket(df["sleep_quality_score"])
 
-    train_df, test_df = train_test_split(
-        df, test_size=0.2, random_state=RANDOM_STATE, stratify=df["quality_bucket"]
+    # Same 70/15/15 split as 05_model_refinements.ipynb (cascaded stratified splits,
+    # same seed) so the app's reported numbers match the notebook exactly. Models are
+    # fit on the 70% train slice only and scored on the untouched 15% test slice; the
+    # 15% validation slice is unused here (it exists in the notebook for RF depth
+    # tuning, which doesn't apply to Linear Regression) but is carved out identically
+    # so train/test end up with the same rows.
+    train_df, temp_df = train_test_split(
+        df, test_size=0.30, random_state=RANDOM_STATE, stratify=df["quality_bucket"]
+    )
+    _val_df, test_df = train_test_split(
+        temp_df, test_size=0.50, random_state=RANDOM_STATE, stratify=temp_df["quality_bucket"]
     )
     y_train, y_test = train_df["sleep_quality_score"], test_df["sleep_quality_score"]
     bucket_test = test_df["quality_bucket"]
