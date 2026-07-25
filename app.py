@@ -41,9 +41,9 @@ FRIENDLY_BASE = {
     "occupation": "Occupation",
 }
 
-# Diverging pair from the project's chart palette: blue = raises the score, red = lowers it.
-POSITIVE_COLOR = "#2a78d6"
-NEGATIVE_COLOR = "#e34948"
+# Diverging pair stepped for the dark night-sky surface: blue = raises the score, red = lowers it.
+POSITIVE_COLOR = "#3987e5"
+NEGATIVE_COLOR = "#e66767"
 STATUS_COLORS = {"Low": "#d03b3b", "Medium": "#fab219", "High": "#0ca30c"}
 STATUS_ICONS = {"Low": "⚠️", "Medium": "●", "High": "✓"}
 
@@ -126,7 +126,7 @@ def biggest_lever(coefs: pd.Series, raw: dict, is_extension: bool):
 
 ROW_HEIGHT = 34
 BAR_THICKNESS = 20
-LABEL_INK = "#52514e"
+LABEL_INK = "#a7abc4"  # moonlit secondary ink — readable on the night surface
 
 
 def contribution_chart(contributions: pd.Series, label_fn, top_n: int = 8) -> alt.Chart:
@@ -151,7 +151,7 @@ def contribution_chart(contributions: pd.Series, label_fn, top_n: int = 8) -> al
         axis=alt.Axis(labelLimit=210, labelPadding=8, domain=False, ticks=False, labelFontSize=12),
     )
 
-    zero_rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#c3c2b7").encode(x="x:Q")
+    zero_rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#3a4159").encode(x="x:Q")
     bars = (
         alt.Chart(plot_df)
         .mark_bar(size=BAR_THICKNESS, cornerRadiusEnd=4)
