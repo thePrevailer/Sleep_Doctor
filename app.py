@@ -271,6 +271,18 @@ else:
     r2, acc = primary["r2"], primary["acc"]
     label_fn = friendly_primary_label
 
+# Final held-out test results for all three algorithms, from
+# notebooks/05_model_refinements.ipynb (70/15/15 split, seed 117). The app serves
+# Linear Regression because it ties the others while staying fully explainable.
+ALGORITHM_COMPARISON = pd.DataFrame(
+    {
+        "Algorithm": ["Baseline (always guess Medium)", "Linear Regression",
+                      "Random Forest (depth 8)", "Gradient Boosting"],
+        "Research-question features": ["44.5%", "61.2%", "61.3%", "61.8%*"],
+        "Extension features": ["44.5%", "68.3%", "67.9%*", "68.8%"],
+    }
+).set_index("Algorithm")
+
 bucket = to_bucket(pd.Series([pred_score])).iloc[0]
 pred_display = float(np.clip(pred_score, 1, 10))
 
@@ -280,6 +292,11 @@ col2.markdown(
     f"**Predicted class**<br>"
     f"<span style='font-size:1.6rem;color:{STATUS_COLORS[bucket]}'>{STATUS_ICONS[bucket]} {bucket}</span>",
     unsafe_allow_html=True,
+)
+st.caption(
+    f"Model: **Linear Regression** (multiple OLS) · "
+    f"{'extension' if is_extension else 'research-question'} feature set · "
+    "trained on 70,000 people, evaluated on held-out data"
 )
 
 lever = biggest_lever(
@@ -302,6 +319,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.altair_chart(contribution_chart(contributions, label_fn), width="stretch")
+
+with st.expander("How our three algorithms compared"):
+    st.table(ALGORITHM_COMPARISON)
+    st.caption(
+        "Held-out test accuracy per algorithm and feature set "
+        "(*validation-set figure — each final model visits the test set only once). "
+        "All three algorithms essentially tie, which is itself a finding: the signal is one "
+        "clean linear stress effect. We deploy Linear Regression because it ties the more "
+        "complex models **and** can explain every prediction — the chart above and the 💡 tip "
+        "come straight from its coefficients, which tree-based models can't provide as directly."
+    )
 
 st.divider()
 st.caption(
