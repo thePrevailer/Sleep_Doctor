@@ -96,6 +96,34 @@ def predict_with_breakdown(coefs: pd.Series, intercept: float, means: pd.Series,
     return pred, contributions
 
 
+def biggest_lever(coefs: pd.Series, raw: dict, is_extension: bool):
+    """The single actionable change that would raise the predicted score the most.
+
+    Only considers levers a person can actually pull tonight (stress management,
+    exercise, late caffeine/alcohol/screens) — not traits like age or occupation.
+    Returns (phrase, gain_in_points) or None if nothing moves the needle.
+    """
+    candidates = []
+    stress = raw["stress_score"]
+    if stress > 1:
+        drop = min(2, stress - 1)
+        candidates.append(("stress_score", -drop, f"lowering stress from {stress} to {stress - drop}"))
+    if raw["exercise_day"] == 0:
+        candidates.append(("exercise_day", 1, "getting some exercise today"))
+    if is_extension:
+        if raw["screen_time_before_bed_mins"] >= 30:
+            candidates.append(("screen_time_before_bed_mins", -30, "cutting screen time before bed by 30 minutes"))
+        if raw["caffeine_mg_before_bed"] >= 50:
+            candidates.append(("caffeine_mg_before_bed", -50, "skipping ~50 mg of late caffeine"))
+        if raw["alcohol_units_before_bed"] > 0:
+            candidates.append(("alcohol_units_before_bed", -raw["alcohol_units_before_bed"], "skipping alcohol before bed"))
+    scored = [(phrase, float(coefs.get(col, 0.0)) * delta) for col, delta, phrase in candidates]
+    scored = [(phrase, gain) for phrase, gain in scored if gain >= 0.05]
+    if not scored:
+        return None
+    return max(scored, key=lambda t: t[1])
+
+
 ROW_HEIGHT = 34
 BAR_THICKNESS = 20
 LABEL_INK = "#52514e"
@@ -179,6 +207,7 @@ st.caption(
     "Based on age, stress, and activity level, can we predict sleep quality? "
     "An interactive demo of the project's Linear Regression models."
 )
+st.caption("⬅️ Set your inputs in the **sidebar** — on a phone, tap the arrow in the top-left corner.")
 
 st.sidebar.header("Inputs")
 mode = st.sidebar.radio(
@@ -253,6 +282,14 @@ col2.markdown(
     unsafe_allow_html=True,
 )
 
+lever = biggest_lever(
+    models["extension"]["coefs"] if is_extension else models["primary"]["coefs"],
+    raw_inputs, is_extension,
+)
+if lever:
+    phrase, gain = lever
+    st.info(f"💡 **Biggest lever:** {phrase} would raise the predicted score by ~{gain:.1f} points.")
+
 st.subheader("What drove this prediction")
 st.caption(
     "Each bar is that input's pull on the score, versus an average person in the dataset "
@@ -273,4 +310,8 @@ st.caption(
     f"Low/Medium/High correctly about **{acc:.0%}** of the time on held-out data. "
     "Trained on a synthetic Kaggle dataset (100,000 rows) — these are patterns built into the "
     "data generator, not verified facts about human sleep."
+)
+st.caption(
+    "Full analysis & code: [github.com/Poudel-Sanskriti/Sleep_Doctor]"
+    "(https://github.com/Poudel-Sanskriti/Sleep_Doctor) · AI4ALL Ignite portfolio project"
 )
