@@ -41,9 +41,9 @@ FRIENDLY_BASE = {
     "occupation": "Occupation",
 }
 
-# Diverging pair from the project's chart palette: blue = raises the score, red = lowers it.
-POSITIVE_COLOR = "#2a78d6"
-NEGATIVE_COLOR = "#e34948"
+# Diverging pair stepped for the dark night-sky surface: blue = raises the score, red = lowers it.
+POSITIVE_COLOR = "#3987e5"
+NEGATIVE_COLOR = "#e66767"
 STATUS_COLORS = {"Low": "#d03b3b", "Medium": "#fab219", "High": "#0ca30c"}
 STATUS_ICONS = {"Low": "⚠️", "Medium": "●", "High": "✓"}
 
@@ -96,9 +96,37 @@ def predict_with_breakdown(coefs: pd.Series, intercept: float, means: pd.Series,
     return pred, contributions
 
 
+def biggest_lever(coefs: pd.Series, raw: dict, is_extension: bool):
+    """The single actionable change that would raise the predicted score the most.
+
+    Only considers levers a person can actually pull tonight (stress management,
+    exercise, late caffeine/alcohol/screens) — not traits like age or occupation.
+    Returns (phrase, gain_in_points) or None if nothing moves the needle.
+    """
+    candidates = []
+    stress = raw["stress_score"]
+    if stress > 1:
+        drop = min(2, stress - 1)
+        candidates.append(("stress_score", -drop, f"lowering stress from {stress} to {stress - drop}"))
+    if raw["exercise_day"] == 0:
+        candidates.append(("exercise_day", 1, "getting some exercise today"))
+    if is_extension:
+        if raw["screen_time_before_bed_mins"] >= 30:
+            candidates.append(("screen_time_before_bed_mins", -30, "cutting screen time before bed by 30 minutes"))
+        if raw["caffeine_mg_before_bed"] >= 50:
+            candidates.append(("caffeine_mg_before_bed", -50, "skipping ~50 mg of late caffeine"))
+        if raw["alcohol_units_before_bed"] > 0:
+            candidates.append(("alcohol_units_before_bed", -raw["alcohol_units_before_bed"], "skipping alcohol before bed"))
+    scored = [(phrase, float(coefs.get(col, 0.0)) * delta) for col, delta, phrase in candidates]
+    scored = [(phrase, gain) for phrase, gain in scored if gain >= 0.05]
+    if not scored:
+        return None
+    return max(scored, key=lambda t: t[1])
+
+
 ROW_HEIGHT = 34
 BAR_THICKNESS = 20
-LABEL_INK = "#52514e"
+LABEL_INK = "#a7abc4"  # moonlit secondary ink — readable on the night surface
 
 
 def contribution_chart(contributions: pd.Series, label_fn, top_n: int = 8) -> alt.Chart:
@@ -123,7 +151,7 @@ def contribution_chart(contributions: pd.Series, label_fn, top_n: int = 8) -> al
         axis=alt.Axis(labelLimit=210, labelPadding=8, domain=False, ticks=False, labelFontSize=12),
     )
 
-    zero_rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#c3c2b7").encode(x="x:Q")
+    zero_rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#3a4159").encode(x="x:Q")
     bars = (
         alt.Chart(plot_df)
         .mark_bar(size=BAR_THICKNESS, cornerRadiusEnd=4)
@@ -179,6 +207,7 @@ st.caption(
     "Based on age, stress, and activity level, can we predict sleep quality? "
     "An interactive demo of the project's Linear Regression models."
 )
+st.caption("⬅️ Set your inputs in the **sidebar** — on a phone, tap the arrow in the top-left corner.")
 
 st.sidebar.header("Inputs")
 mode = st.sidebar.radio(
@@ -242,6 +271,18 @@ else:
     r2, acc = primary["r2"], primary["acc"]
     label_fn = friendly_primary_label
 
+# Final held-out test results for all three algorithms, from
+# notebooks/05_model_refinements.ipynb (70/15/15 split, seed 117). The app serves
+# Linear Regression because it ties the others while staying fully explainable.
+ALGORITHM_COMPARISON = pd.DataFrame(
+    {
+        "Algorithm": ["Baseline (always guess Medium)", "Linear Regression",
+                      "Random Forest (depth 8)", "Gradient Boosting"],
+        "Research-question features": ["44.5%", "61.2%", "61.3%", "61.8%*"],
+        "Extension features": ["44.5%", "68.3%", "67.9%*", "68.8%"],
+    }
+).set_index("Algorithm")
+
 bucket = to_bucket(pd.Series([pred_score])).iloc[0]
 pred_display = float(np.clip(pred_score, 1, 10))
 
@@ -252,6 +293,19 @@ col2.markdown(
     f"<span style='font-size:1.6rem;color:{STATUS_COLORS[bucket]}'>{STATUS_ICONS[bucket]} {bucket}</span>",
     unsafe_allow_html=True,
 )
+st.caption(
+    f"Model: **Linear Regression** (multiple OLS) · "
+    f"{'extension' if is_extension else 'research-question'} feature set · "
+    "trained on 70,000 people, evaluated on held-out data"
+)
+
+lever = biggest_lever(
+    models["extension"]["coefs"] if is_extension else models["primary"]["coefs"],
+    raw_inputs, is_extension,
+)
+if lever:
+    phrase, gain = lever
+    st.info(f"💡 **Biggest lever:** {phrase} would raise the predicted score by ~{gain:.1f} points.")
 
 st.subheader("What drove this prediction")
 st.caption(
@@ -266,6 +320,17 @@ st.markdown(
 )
 st.altair_chart(contribution_chart(contributions, label_fn), width="stretch")
 
+with st.expander("How our three algorithms compared"):
+    st.table(ALGORITHM_COMPARISON)
+    st.caption(
+        "Held-out test accuracy per algorithm and feature set "
+        "(*validation-set figure — each final model visits the test set only once). "
+        "All three algorithms essentially tie, which is itself a finding: the signal is one "
+        "clean linear stress effect. We deploy Linear Regression because it ties the more "
+        "complex models **and** can explain every prediction — the chart above and the 💡 tip "
+        "come straight from its coefficients, which tree-based models can't provide as directly."
+    )
+
 st.divider()
 st.caption(
     f"**Honesty check:** this {'extension' if is_extension else 'research-question'} model "
@@ -273,4 +338,8 @@ st.caption(
     f"Low/Medium/High correctly about **{acc:.0%}** of the time on held-out data. "
     "Trained on a synthetic Kaggle dataset (100,000 rows) — these are patterns built into the "
     "data generator, not verified facts about human sleep."
+)
+st.caption(
+    "Full analysis & code: [github.com/Poudel-Sanskriti/Sleep_Doctor]"
+    "(https://github.com/Poudel-Sanskriti/Sleep_Doctor) · AI4ALL Ignite portfolio project"
 )

@@ -1,0 +1,9 @@
+# Sleep Doctor theme — "night sky": deep indigo surfaces, lavender accent, moonlight ink.
+# Colors validated for contrast and colorblind separation against the #0f1524 surface.
+[theme]
+base = "dark"
+primaryColor = "#9085e9"
+backgroundColor = "#0f1524"
+secondaryBackgroundColor = "#1a2138"
+textColor = "#e8e9f2"
+font = "sans serif"
