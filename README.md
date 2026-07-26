@@ -76,7 +76,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Pick a mode (research question vs. full lifestyle), move the sliders, and see the predicted sleep-quality score, its Low/Medium/High class, and a per-input breakdown of what drove the prediction.
+Pick how much detail to give — "Just the basics" (the three research-question factors) or "Full picture" (all lifestyle factors) — move the sliders, and see the predicted sleep-quality score, its Low/Medium/High class, and a per-input breakdown of what drove the prediction.
 
 ### Explore the analysis notebooks
 
