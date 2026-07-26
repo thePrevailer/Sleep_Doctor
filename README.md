@@ -22,7 +22,7 @@ Finally, an interactive **Streamlit app** lets anyone try the models live.
 ## What we found
 
 - **Of the three research-question factors, only stress matters.** Age and activity add essentially nothing — stress alone predicts sleep-quality class about as well as all three combined.
-- **Every model clears the 44.5% majority-class baseline, and then they all tie (~61%).** Properly tuned, Linear Regression, Random Forest, and Gradient Boosting land within 0.6 points of each other — evidence the signal is one clean linear stress effect with no hidden non-linear structure for a fancier model to find.
+- **Both of our models clear the 44.5% majority-class baseline, and then tie with each other (~61%).** Properly tuned, Linear Regression and Random Forest finish a tenth of a point apart — evidence the signal is one clean linear stress effect, with no hidden non-linear structure for a tree ensemble to find.
 - **The extension lifts accuracy to ~68%** (R² 0.41 → 0.60) by adding lifestyle/context factors — shift work (−1.0 pt), mental health (~0.9 pt), and weekends (~0.7 pt) are the largest new effects.
 - **~40% of sleep quality stays unexplained by lifestyle entirely** — an honest limit, and the data is synthetic, so these are patterns in the generator, not verified facts about human sleep.
 
@@ -40,20 +40,27 @@ Rounding each score to the nearest integer and cutting at ≤4 / 5–6 / ≥7 gi
 
 ![Distribution of sleep quality scores by class](figures/01_sleep_quality_histogram.png)
 
-### Held-out accuracy, by algorithm
+### The result: our two models, on the question we asked
 
-| Algorithm | Research-question features | Extension features |
+This is the project as proposed — Path A against Path B, on age, stress, and activity, judged on the held-out test set.
+
+| Model | Held-out accuracy | R² |
 |---|---|---|
-| Baseline (always guess Medium) | 44.5% | 44.5% |
-| Linear Regression | 61.2% | 68.3% |
-| Random Forest (`max_depth=8`) | 61.3% | 67.9%\* |
-| Gradient Boosting | 61.8%\* | 68.8% |
+| Baseline (always guess Medium) | 44.5% | — |
+| **Path A — Linear Regression** | **61.2%** | 0.41 |
+| **Path B — Random Forest** (`max_depth=8`) | **61.3%** | — |
 
-R² for the served Linear Regression models: **0.41** on the research-question features, **0.60** on the extension set.
+Both beat the baseline by about 17 points, and they finish within a tenth of a point of each other. The tie is the interesting part: a tree ensemble given free rein to find curves and interactions can't do better than a straight line, which says the relationship really is one clean linear stress effect.
 
-\* Validation-set figure. Each *final* model visits the test set exactly once — we report the validation score for the runners-up rather than spending the test set on models we didn't deploy.
+### Two follow-up questions we then asked
 
-The three algorithms land within 0.6 points of each other on the research-question features. That near-tie is itself the finding: when a linear model, a tree ensemble, and a boosted ensemble all agree, the limit is the information in the features, not the sophistication of the model.
+Neither of these replaces the comparison above — they're checks we ran afterwards to find out whether we'd left anything on the table.
+
+**Could a more powerful algorithm beat them?** No. We added Gradient Boosting purely as a challenger and it reached 61.8%\* — inside a point of both proposed models. When three different algorithm families land in the same place, the ceiling belongs to the features, not the model.
+
+**Could more of a person's day explain more?** Yes, by about 7 points. Adding lifestyle and context features (work hours, shift work, caffeine, screen time, chronotype, mental health, occupation) lifts Linear Regression to 68.3% and Gradient Boosting to 68.8%, with R² rising from 0.41 to 0.60. Random Forest reached 67.9%\* on the same features. This widens the original research question, so we report it as an extension rather than folding it into the headline result.
+
+\* Validation-set figure. Each *final* model visits the test set exactly once — we report validation scores for models we didn't deploy rather than spending the test set on them.
 
 ## Getting started
 
