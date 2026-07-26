@@ -48,15 +48,40 @@ STATUS_COLORS = {"Low": "#d03b3b", "Medium": "#fab219", "High": "#0ca30c"}
 STATUS_ICONS = {"Low": "⚠️", "Medium": "●", "High": "✓"}
 
 
-def dummy_label(dummy_col: str) -> str:
+# Each bar shows how a person differs from the dataset average, so a switch that
+# is OFF produces a bar with the opposite sign to its coefficient — being a
+# non-shift-worker is a small plus. Naming the state rather than the column keeps
+# the sign readable: "No shift work +0.08" instead of "shift_work +0.08".
+BINARY_STATE_LABELS = {
+    "shift_work": ("Works shifts", "No shift work"),
+    "exercise_day": ("Exercised today", "No exercise today"),
+}
+
+
+def _is_on(value) -> bool:
+    try:
+        return float(value) >= 0.5
+    except (TypeError, ValueError):
+        return bool(value)
+
+
+def dummy_label(dummy_col: str, value=None) -> str:
+    if dummy_col in BINARY_STATE_LABELS:
+        on, off = BINARY_STATE_LABELS[dummy_col]
+        return on if _is_on(value) else off
     for base in EXTENSION_CATEGORICAL:
         prefix = base + "_"
         if dummy_col.startswith(prefix):
-            return f"{FRIENDLY_BASE[base]}: {dummy_col[len(prefix):]}"
-    return dummy_col
+            category = dummy_col[len(prefix):]
+            state = category if _is_on(value) else f"not {category}"
+            return f"{FRIENDLY_BASE[base]}: {state}"
+    return FRIENDLY_BASE.get(dummy_col, dummy_col)
 
 
-def friendly_primary_label(feature: str) -> str:
+def friendly_primary_label(feature: str, value=None) -> str:
+    if feature in BINARY_STATE_LABELS:
+        on, off = BINARY_STATE_LABELS[feature]
+        return on if _is_on(value) else off
     return FRIENDLY_BASE.get(feature, feature)
 
 
@@ -129,11 +154,11 @@ BAR_THICKNESS = 20
 LABEL_INK = "#a7abc4"  # moonlit secondary ink — readable on the night surface
 
 
-def contribution_chart(contributions: pd.Series, label_fn, top_n: int = 8) -> alt.Chart:
+def contribution_chart(contributions: pd.Series, label_fn, values, top_n: int = 8) -> alt.Chart:
     ranked = contributions.reindex(contributions.abs().sort_values(ascending=False).index)
     ranked = ranked[ranked.abs() > 1e-6].head(top_n)
     plot_df = pd.DataFrame({
-        "feature": [label_fn(f) for f in ranked.index],
+        "feature": [label_fn(f, values.get(f)) for f in ranked.index],
         "contribution": ranked.values,
     })
     plot_df["direction"] = np.where(
@@ -321,7 +346,7 @@ st.markdown(
     f"<span style='color:{NEGATIVE_COLOR}'>⬤</span> Lowers predicted score",
     unsafe_allow_html=True,
 )
-st.altair_chart(contribution_chart(contributions, label_fn), width="stretch")
+st.altair_chart(contribution_chart(contributions, label_fn, x_row), width="stretch")
 
 with st.expander("How our two models compared — and the challenger we tested"):
     st.table(ALGORITHM_COMPARISON)
