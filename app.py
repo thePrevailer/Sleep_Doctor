@@ -229,19 +229,21 @@ models = load_models()
 
 st.title("\U0001fa7a\U0001f319 Sleep Doctor")
 st.caption(
-    "Based on age, stress, and activity level, can we predict sleep quality? "
-    "An interactive demo of the project's Linear Regression models."
+    "Can a few facts about your day predict how well you'll sleep? "
+    "Answer the questions in the sidebar and our model will guess your sleep quality — "
+    "and show you exactly why."
 )
-st.caption("⬅️ Set your inputs in the **sidebar** — on a phone, tap the arrow in the top-left corner.")
+st.caption("⬅️ Start in the **sidebar** — on a phone, tap the arrow in the top-left corner.")
 
-st.sidebar.header("Inputs")
+st.sidebar.header("Tell us about your day")
 mode = st.sidebar.radio(
-    "Model",
-    ["Research question (3 factors)", "Full lifestyle (extension)"],
-    help="Primary mirrors the research question (age, stress, activity). "
-         "Extension adds every lifestyle/context factor from the notebook's follow-up analysis.",
+    "How much detail?",
+    ["Just the basics (age, stress, activity)", "Full picture (all lifestyle factors)"],
+    help="'Just the basics' uses only the three factors from our research question. "
+         "'Full picture' adds the rest of your day — work hours, caffeine, screen time, and more — "
+         "which makes the prediction more accurate (68% vs 61%).",
 )
-is_extension = mode == "Full lifestyle (extension)"
+is_extension = mode.startswith("Full picture")
 
 st.sidebar.subheader("Core factors")
 age = st.sidebar.slider("Age", 18, 69, 35)
@@ -259,11 +261,13 @@ if is_extension:
         extension_inputs["screen_time_before_bed_mins"] = st.slider("Screen time before bed (min)", 0, 180, 60, 5)
         extension_inputs["bmi"] = st.slider("BMI", 16.0, 45.0, 26.0, 0.5)
         extension_inputs["nap_duration_mins"] = st.slider("Nap duration (min)", 0, 116, 15, 5)
-        extension_inputs["chronotype"] = st.selectbox("Chronotype", CATEGORY_OPTIONS["chronotype"])
+        extension_inputs["chronotype"] = st.selectbox(
+            "Morning or night person? (chronotype)", CATEGORY_OPTIONS["chronotype"]
+        )
         extension_inputs["mental_health_condition"] = st.selectbox(
             "Mental health", CATEGORY_OPTIONS["mental_health_condition"]
         )
-        extension_inputs["day_type"] = st.selectbox("Day type", CATEGORY_OPTIONS["day_type"])
+        extension_inputs["day_type"] = st.selectbox("Weekday or weekend?", CATEGORY_OPTIONS["day_type"])
         extension_inputs["season"] = st.selectbox("Season", CATEGORY_OPTIONS["season"])
         extension_inputs["gender"] = st.selectbox("Gender", CATEGORY_OPTIONS["gender"])
         extension_inputs["occupation"] = st.selectbox("Occupation", CATEGORY_OPTIONS["occupation"])
@@ -317,14 +321,25 @@ pred_display = float(np.clip(pred_score, 1, 10))
 col1, col2 = st.columns(2)
 col1.metric("Predicted sleep quality", f"{pred_display:.1f} / 10")
 col2.markdown(
-    f"**Predicted class**<br>"
+    f"**Sleep category**<br>"
     f"<span style='font-size:1.6rem;color:{STATUS_COLORS[bucket]}'>{STATUS_ICONS[bucket]} {bucket}</span>",
     unsafe_allow_html=True,
 )
+
+# One plain-language sentence: the single biggest reason behind this prediction.
+top_feature = contributions.abs().idxmax()
+top_effect = float(contributions[top_feature])
+if abs(top_effect) >= 0.15:
+    top_name = label_fn(top_feature, x_row.get(top_feature))
+    verb = "pulling your score up" if top_effect > 0 else "pulling your score down"
+    st.markdown(
+        f"The biggest factor here: **{top_name}**, {verb} by about **{abs(top_effect):.1f} points**."
+    )
+
 st.caption(
-    f"Model: **Linear Regression** (multiple OLS) · "
-    f"{'extension' if is_extension else 'research-question'} feature set · "
-    "trained on 70,000 people, evaluated on held-out data"
+    f"Model: **Linear Regression** · "
+    f"{'full-picture' if is_extension else 'basic (3-factor)'} version · "
+    "trained on 70,000 people, tested on 15,000 people it had never seen"
 )
 
 lever = biggest_lever(
@@ -333,12 +348,12 @@ lever = biggest_lever(
 )
 if lever:
     phrase, gain = lever
-    st.info(f"💡 **Biggest lever:** {phrase} would raise the predicted score by ~{gain:.1f} points.")
+    st.info(f"💡 **What would help most:** {phrase} would raise your predicted score by ~{gain:.1f} points.")
 
 st.subheader("What drove this prediction")
 st.caption(
-    "Each bar is that input's pull on the score, versus an average person in the dataset "
-    "(Linear Regression coefficient x how far your input sits from the dataset mean)."
+    "Blue bars pushed your score up; red bars pulled it down. "
+    "Each bar compares you with a typical person in our data."
 )
 st.markdown(
     f"<span style='color:{POSITIVE_COLOR}'>⬤</span> Raises predicted score"
@@ -347,6 +362,16 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.altair_chart(contribution_chart(contributions, label_fn, x_row), width="stretch")
+
+with st.expander("How are the bars calculated?"):
+    st.markdown(
+        "The model learned how much each factor matters (its *coefficient*). Each bar is that "
+        "importance multiplied by how far **your** answer sits from the dataset average. "
+        "That's why a factor can show a small bar even when it matters a lot — if your answer "
+        "is close to typical, it isn't moving *your* prediction much. It also means labels "
+        "describe your state: \"No shift work\" shows a small plus because *not* working shifts "
+        "is slightly better than average, even though shift work itself costs about a full point."
+    )
 
 with st.expander("How our two models compared — and the challenger we tested"):
     st.table(ALGORITHM_COMPARISON)
@@ -363,11 +388,12 @@ with st.expander("How our two models compared — and the challenger we tested")
 
 st.divider()
 st.caption(
-    f"**Honesty check:** this {'extension' if is_extension else 'research-question'} model "
-    f"explains about **{r2:.0%}** of the variation in sleep quality (R²) and sorts people into "
-    f"Low/Medium/High correctly about **{acc:.0%}** of the time on held-out data. "
-    "Trained on a synthetic Kaggle dataset (100,000 rows) — these are patterns built into the "
-    "data generator, not verified facts about human sleep."
+    f"**Honesty check:** this {'full-picture' if is_extension else 'basic'} model explains about "
+    f"**{r2:.0%}** of what makes sleep quality differ between people (R²), and sorts people into "
+    f"Low/Medium/High correctly about **{acc:.0%}** of the time on people it never saw during "
+    "training. It was trained on a synthetic (computer-generated) Kaggle dataset of 100,000 "
+    "records — so these are patterns built into that data, not verified facts about human sleep. "
+    "This is a class project, not medical advice."
 )
 st.caption(
     "Full analysis & code: [github.com/Poudel-Sanskriti/Sleep_Doctor]"
