@@ -271,13 +271,16 @@ else:
     r2, acc = primary["r2"], primary["acc"]
     label_fn = friendly_primary_label
 
-# Final held-out test results for all three algorithms, from
-# notebooks/05_model_refinements.ipynb (70/15/15 split, seed 117). The app serves
-# Linear Regression because it ties the others while staying fully explainable.
+# Final held-out test results from notebooks/05_model_refinements.ipynb
+# (70/15/15 split, seed 117). Paths A and B are the two models the proposal
+# promised; Gradient Boosting was added afterwards only as a sanity check. The
+# app serves Linear Regression because it ties the rest while staying explainable.
 ALGORITHM_COMPARISON = pd.DataFrame(
     {
-        "Algorithm": ["Baseline (always guess Medium)", "Linear Regression",
-                      "Random Forest (depth 8)", "Gradient Boosting"],
+        "Algorithm": ["Baseline (always guess Medium)",
+                      "Path A — Linear Regression",
+                      "Path B — Random Forest (depth 8)",
+                      "Challenger — Gradient Boosting"],
         "Research-question features": ["44.5%", "61.2%", "61.3%", "61.8%*"],
         "Extension features": ["44.5%", "68.3%", "67.9%*", "68.8%"],
     }
@@ -320,15 +323,17 @@ st.markdown(
 )
 st.altair_chart(contribution_chart(contributions, label_fn), width="stretch")
 
-with st.expander("How our three algorithms compared"):
+with st.expander("How our two models compared — and the challenger we tested"):
     st.table(ALGORITHM_COMPARISON)
     st.caption(
-        "Held-out test accuracy per algorithm and feature set "
+        "Held-out accuracy per model and feature set "
         "(*validation-set figure — each final model visits the test set only once). "
-        "All three algorithms essentially tie, which is itself a finding: the signal is one "
-        "clean linear stress effect. We deploy Linear Regression because it ties the more "
-        "complex models **and** can explain every prediction — the chart above and the 💡 tip "
-        "come straight from its coefficients, which tree-based models can't provide as directly."
+        "**Paths A and B are the project:** they tie, which is itself a finding — the signal is "
+        "one clean linear stress effect. Gradient Boosting was added afterwards purely as a "
+        "sanity check, and the extension feature set is a follow-up question, not the original "
+        "research question. We deploy Linear Regression because it ties the rest **and** can "
+        "explain every prediction — the chart above and the 💡 tip come straight from its "
+        "coefficients, which tree-based models can't provide as directly."
     )
 
 st.divider()
