@@ -60,7 +60,7 @@ Neither of these replaces the comparison above — they're checks we ran afterwa
 
 **Could more of a person's day explain more?** Yes, by about 7 points. Adding lifestyle and context features (work hours, shift work, caffeine, screen time, chronotype, mental health, occupation) lifts Linear Regression to 68.3% and Gradient Boosting to 68.8%, with R² rising from 0.41 to 0.60. Random Forest reached 67.9%\* on the same features. This widens the original research question, so we report it as an extension rather than folding it into the headline result.
 
-\* Validation-set figure. Each *final* model visits the test set exactly once — we report validation scores for models we didn't deploy rather than spending the test set on them.
+\* Validation-set figure. Each *final* model visits the test set exactly once, so figures marked here are validation scores rather than a second, invalid trip to the test set.
 
 ## Getting started
 

@@ -308,7 +308,7 @@ ALGORITHM_COMPARISON = pd.DataFrame(
     {
         "Algorithm": ["Baseline (always guess Medium)",
                       "Path A — Linear Regression",
-                      "Path B — Random Forest (depth 8)",
+                      "Path B — Random Forest (max_depth=8)",
                       "Challenger — Gradient Boosting"],
         "Research-question features": ["44.5%", "61.2%", "61.3%", "61.8%*"],
         "Extension features": ["44.5%", "68.3%", "67.9%*", "68.8%"],
