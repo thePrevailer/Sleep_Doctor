@@ -141,19 +141,25 @@ python train.py
 
 1. Thalla, M. *Sleep Health & Daily Performance Dataset.* Kaggle. https://www.kaggle.com/datasets/mohankrishnathalla/sleep-health-and-daily-performance-dataset
 
-**Sleep science** — background for the relationships we tested
+**Sleep science** — one source per factor in our research question, as cited in our project proposal
 
-2. Åkerstedt, T. (2006). Psychosocial stress and impaired sleep. *Scandinavian Journal of Work, Environment & Health*, 32(6), 493–501. https://doi.org/10.5271/sjweh.1054
-3. Kim, E. J., & Dimsdale, J. E. (2007). The effect of psychosocial stress on sleep: A review of polysomnographic evidence. *Behavioral Sleep Medicine*, 5(4), 256–278. https://doi.org/10.1080/15402000701557383
-4. Boivin, D. B., & Boudreau, P. (2014). Impacts of shift work on sleep and circadian rhythms. *Pathologie Biologie*, 62(5), 292–301. https://doi.org/10.1016/j.patbio.2014.08.001
+2. Kim, W., Um, Y. H., Kim, S.-M., et al. (2021). Association between age and sleep quality: Findings from a community health survey. *Sleep Medicine Research*, 12(2). https://www.sleepmedres.org/journal/view.php?number=193
+3. Nguyen, A. W., Bubu, O. M., Ding, K., & Lincoln, K. D. (2024). Chronic stress exposure, social support, and sleep quality among African Americans: Findings from the National Survey of American Life-Reinterview. *Ethnicity & Health*. https://pmc.ncbi.nlm.nih.gov/articles/PMC11272438/
+4. Zhao, H., Lu, C., & Yi, C. (2023). Physical activity and sleep quality association in different populations: A meta-analysis. *International Journal of Environmental Research and Public Health*, 20(3), 1864. https://pmc.ncbi.nlm.nih.gov/articles/PMC9914680/
+5. Alnawwar, M. A., Alraddadi, M. I., Algethmi, R. A., et al. (2023). The effect of physical activity on sleep quality and sleep disorder: A systematic review. *Cureus*. https://pmc.ncbi.nlm.nih.gov/articles/PMC10503965/
+
+**Sleep science** — additional background for the extension analysis
+
+6. Åkerstedt, T. (2006). Psychosocial stress and impaired sleep. *Scandinavian Journal of Work, Environment & Health*, 32(6), 493–501. https://doi.org/10.5271/sjweh.1054
+7. Boivin, D. B., & Boudreau, P. (2014). Impacts of shift work on sleep and circadian rhythms. *Pathologie Biologie*, 62(5), 292–301. https://doi.org/10.1016/j.patbio.2014.08.001
 
 **Tools**
 
-5. Pedregosa, F., et al. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, 12, 2825–2830. https://jmlr.org/papers/v12/pedregosa11a.html
-6. McKinney, W. (2010). Data structures for statistical computing in Python. *Proceedings of the 9th Python in Science Conference*, 56–61. https://doi.org/10.25080/Majora-92bf1922-00a
-7. Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. *Computing in Science & Engineering*, 9(3), 90–95. https://doi.org/10.1109/MCSE.2007.55
-8. Streamlit documentation. https://docs.streamlit.io
+8. Pedregosa, F., et al. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, 12, 2825–2830. https://jmlr.org/papers/v12/pedregosa11a.html
+9. McKinney, W. (2010). Data structures for statistical computing in Python. *Proceedings of the 9th Python in Science Conference*, 56–61. https://doi.org/10.25080/Majora-92bf1922-00a
+10. Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. *Computing in Science & Engineering*, 9(3), 90–95. https://doi.org/10.1109/MCSE.2007.55
+11. Streamlit documentation. https://docs.streamlit.io
 
 **Ethics and bias**
 
-9. Dastin, J. (2018, October 10). Amazon scraps secret AI recruiting tool that showed bias against women. *Reuters*. https://www.reuters.com/article/us-amazon-com-jobs-automation-insight-idUSKCN1MK08G
+12. Dastin, J. (2018, October 10). Amazon scraps secret AI recruiting tool that showed bias against women. *Reuters*. https://www.reuters.com/article/us-amazon-com-jobs-automation-insight-idUSKCN1MK08G
